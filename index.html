@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>休暇時間電卓</title>
+  <style>
+    :root{
+      --bg:#f7f7fb;
+      --card:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --brand:#2563eb;
+      --danger:#ef4444;
+      --ring: 0 0 0 3px rgba(37,99,235,.25);
+      --radius: 1.25rem;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding: 20px;
+    }
+    .app{
+      width:min(1100px, 100%);
+      margin:0 auto;
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow: 0 20px 40px rgba(2,6,23,.08), 0 2px 6px rgba(2,6,23,.06);
+      overflow:hidden;
+    }
+    header{padding:18px 20px 12px; border-bottom:1px solid #eee;}
+    header h1{margin:0 0 6px; font-size: clamp(18px, 3.4vw, 22px);}
+    .wrap{padding: 16px 18px;}
+    .grid{display:grid; grid-template-columns: 1.1fr 1fr; gap: 16px;}
+    .card{border:1px solid #eee; border-radius:18px; padding:14px; background:#fff;}
+    .field label{font-size:12px;color:var(--muted); display:block; margin-bottom:6px}
+    input[type=number]{
+      width:100%; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; font-size:16px; outline:none; background:white;
+    }
+    input[type=number]:focus{border-color:var(--brand); box-shadow: var(--ring);}
+    .row{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap}
+    .group{display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; align-items:end}
+    .actions{display:flex; gap:10px; flex-wrap:wrap}
+    button{appearance:none; border:0; cursor:pointer; padding:10px 14px; border-radius:12px; font-size:15px; background:var(--brand); color:white; font-weight:600}
+    button.secondary{background:#e5e7eb; color:#111827; font-weight:500}
+    button.ghost{background:transparent; color:#2563eb}
+    button.danger{background:var(--danger); color:white}
+    .badge{display:inline-flex; gap:6px; align-items:center; background:#eef2ff; color:#3730a3; font-weight:600; padding:6px 10px; border-radius:999px; font-size:12px}
+    .result{border:1px dashed #d1d5db; border-radius:14px; padding:12px 14px; background:#fafafa}
+    .result .big{font-size: clamp(22px, 4.2vw, 28px); font-weight:800}
+    .muted{color:var(--muted)}
+    .list{border:1px solid #eee; border-radius:14px; overflow:hidden}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th, td{padding:10px 10px; border-bottom:1px solid #f1f5f9; text-align:left}
+    th{background:#f8fafc; font-weight:700; font-size:13px}
+    tr:hover td{background:#fafafa}
+    .center{text-align:center}
+    .nowrap{white-space:nowrap}
+    .chip{display:inline-block; background:#f3f4f6; border:1px solid #e5e7eb; color:#374151; border-radius:999px; padding:4px 10px; font-size:12px; margin-right:6px}
+    .footer{padding:14px 18px 18px; color:var(--muted); font-size:12px}
+  </style>
+
+  <!-- Responsive enhancement injected -->
+  <style>
+    /* Base touch targets */
+    input[type="number"], input[type="text"], select, button {
+      font-size: 16px; /* prevent iOS zoom */
+      line-height: 1.3;
+    }
+    button { cursor: pointer; }
+    /* Tables: allow horizontal scroll on mobile */
+    .table-wrap, .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px; }
+    /* Generic grid/flex containers collapse vertically on small screens */
+    @media (max-width: 720px) {
+      /* Stack any common layout containers */
+      .grid, .row, .wrap, .container, .content, .main, .columns, .flex {
+        display: block !important;
+      }
+      /* Make cards/sections full width */
+      .card, .panel, .section, .box {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 12px 0 !important;
+      }
+      /* Inputs in 3 cols → 1 col */
+      .group, .fields, .controls {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+      /* Buttons wrap to two columns when space allows */
+      .actions, .buttons {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px !important;
+      }
+      .actions .full, .buttons .full { grid-column: 1 / -1; }
+      /* Make inputs and buttons stretch */
+      input, select, button, .btn {
+        width: 100% !important;
+        box-sizing: border-box;
+      }
+      /* Reduce big paddings/margins to fit */
+      [class*="container"], [class*="wrap"] {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+      }
+      /* Sticky bottom bar for key actions if present */
+      .bottom-bar {
+        position: sticky; bottom: 0; z-index: 10;
+        background: rgba(255,255,255,.9);
+        backdrop-filter: saturate(140%) blur(6px);
+        padding: 10px;
+        border-top: 1px solid #e5e7eb;
+      }
+      /* Table header stickiness (optional, only if supported) */
+      thead th { position: sticky; top: 0; background: #fff; }
+    }
+  </style>
+
+</head>
+<body>
+  <main class="app" role="application">
+    <header>
+      <div class="row" style="align-items:center">
+        <h1 style="margin:0; flex:1">休暇時間電卓</h1>
+        <span class="badge">1日 = 7時間45分（465分）</span>
+      </div>
+    </header>
+
+    <div class="wrap grid">
+      <!-- 入力＆コントロール -->
+      <section class="card">
+        <div class="field"><label>入力（追加する時間）</label></div>
+        <div class="group">
+          <div class="field"><label>日</label><input type="number" id="in_d" inputmode="numeric" min="0" value="0"></div>
+          <div class="field"><label>時間</label><input type="number" id="in_h" inputmode="numeric" min="0" value="0"></div>
+          <div class="field"><label>分</label><input type="number" id="in_m" inputmode="numeric" min="0" value="0"></div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button id="addBtn">追加（合算）</button>
+          <button class="secondary" id="undoBtn">元に戻す</button>
+          <button class="secondary" id="clearInputBtn">入力クリア</button>
+          <button class="danger" id="resetAllBtn">累計リセット</button>
+          <button class="ghost" id="copyBtn">累計をコピー</button>
+        </div>
+
+        <div class="result" style="margin-top:12px">
+          <div class="muted">現在の累計</div>
+          <div id="totalText" class="big">0日 0時間 0分</div>
+          <div id="totalChips" style="margin-top:6px">
+            <span class="chip" id="chipD">日=0</span>
+            <span class="chip" id="chipH">時間=0</span>
+            <span class="chip" id="chipM">分=0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 履歴リスト -->
+      <section class="card">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <div class="field"><label>履歴</label></div>
+          <div class="muted">保存先：ブラウザ（localStorage）</div>
+        </div>
+        <div class="list">
+          <div class="table-wrap"><table>
+            <thead>
+              <tr>
+                <th class="center">#</th>
+                <th>追加</th>
+                <th>累計</th>
+                <th class="center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="histBody"></tbody>
+          </table></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="secondary" id="exportBtn">CSVエクスポート</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">© 休暇時間電卓 Takayuki WAYAMA</div>
+  </main>
+
+  <script>
+    const DAY_MIN = 465;
+    const KEY = 'worktime_accum_v1'; // 以前の履歴もそのまま読めるようにキーは維持
+    const $ = (id)=>document.getElementById(id);
+    const toInt = (v)=>{ const n=parseInt(v,10); return isNaN(n)?0:Math.max(0,n); };
+    const totalMinutes = (d,h,m)=> toInt(d)*DAY_MIN + toInt(h)*60 + toInt(m);
+    const normalize = (t)=>{
+      const d = Math.floor(t / DAY_MIN);
+      const rem = t - d*DAY_MIN;
+      const h = Math.floor(rem/60);
+      const m = rem - h*60;
+      return {d,h,m};
+    };
+    const fmt = (d,h,m)=> `${d}日 ${h}時間 ${m}分`;
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return {sum:0, items:[]};
+        const obj = JSON.parse(raw);
+        if(!obj || typeof obj.sum!=='number' || !Array.isArray(obj.items)) return {sum:0, items:[]};
+        return obj;
+      }catch(e){ return {sum:0, items:[]}; }
+    }
+    function saveState(state){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+    function render(){
+      const st = loadState();
+      const n = normalize(st.sum);
+      $('totalText').textContent = fmt(n.d, n.h, n.m);
+      $('chipD').textContent = `日=${n.d}`;
+      $('chipH').textContent = `時間=${n.h}`;
+      $('chipM').textContent = `分=${n.m}`;
+
+      const tbody = $('histBody');
+      tbody.innerHTML = '';
+      st.items.forEach((it, idx)=>{
+        const cumul = normalize(it.cumul);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="center">${idx+1}</td>
+          <td>${fmt(it.d,it.h,it.m)}</td>
+          <td>${fmt(cumul.d, cumul.h, cumul.m)}</td>
+          <td class="center">
+            <button class="secondary" data-act="delete" data-id="${it.id}">削除</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function add(){
+      const d = toInt($('in_d').value);
+      const h = toInt($('in_h').value);
+      const m = toInt($('in_m').value);
+      const delta = totalMinutes(d,h,m);
+      if(delta===0){ alert('0は追加されません'); return; }
+
+      const st = loadState();
+      const nextSum = st.sum + delta;
+      const it = { id: (crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())),
+                   d,h,m, delta, cumul: nextSum };
+      st.sum = nextSum;
+      st.items.push(it);
+      saveState(st);
+      render();
+    }
+
+    function undo(){
+      const st = loadState();
+      if(st.items.length===0) return;
+      const last = st.items.pop();
+      st.sum = Math.max(0, st.sum - last.delta);
+      // 再計算
+      let acc = 0;
+      st.items = st.items.map(x=>{
+        acc += x.delta;
+        return {...x, cumul: acc};
+      });
+      saveState(st);
+      render();
+    }
+
+    function resetAll(){
+      if(!confirm('累計と履歴をリセットします。よろしいですか？')) return;
+      saveState({sum:0, items:[]});
+      render();
+    }
+
+    function clearInput(){ ['in_d','in_h','in_m'].forEach(id=> $(id).value='0'); $('in_d').focus(); }
+
+    function copyTotal(){
+      const st = loadState();
+      const n = normalize(st.sum);
+      const text = `累計：${fmt(n.d, n.h, n.m)}`;
+      navigator.clipboard.writeText(text).then(()=>{
+        const btn = $('copyBtn'); const old=btn.textContent;
+        btn.textContent='コピーしました'; setTimeout(()=>btn.textContent=old, 1200);
+      }).catch(()=>{});
+    }
+
+    function exportCSV(){
+      const st = loadState();
+      const rows = [
+        ['#','追加（日）','追加（時）','追加（分）','累計（日）','累計（時）','累計（分）']
+      ];
+      st.items.forEach((it, idx)=>{
+        const c = normalize(it.cumul);
+        rows.push([idx+1, it.d, it.h, it.m, c.d, c.h, c.m]);
+      });
+      const csv = rows.map(r=> r.map(x=> `"${String(x).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'leave_time_history.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function onHistClick(e){
+      const btn = e.target.closest('button[data-act="delete"]');
+      if(!btn) return;
+      const id = btn.dataset.id;
+      const st = loadState();
+      const idx = st.items.findIndex(x=> x.id===id);
+      if(idx<0) return;
+      st.items.splice(idx,1);
+      // 再計算
+      let acc = 0;
+      st.items = st.items.map(x=>{
+        acc += x.delta;
+        return {...x, cumul: acc};
+      });
+      st.sum = acc;
+      saveState(st);
+      render();
+    }
+
+    document.getElementById('addBtn').addEventListener('click', add);
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+    document.getElementById('clearInputBtn').addEventListener('click', clearInput);
+    document.getElementById('copyBtn').addEventListener('click', copyTotal);
+    document.getElementById('exportBtn').addEventListener('click', exportCSV);
+    document.getElementById('histBody').addEventListener('click', onHistClick);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Enter') add(); });
+
+    render();
+  </script>
+</body>
+</html>
